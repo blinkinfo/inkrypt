@@ -332,7 +332,7 @@ function App() {
                     placeholder="Enter your secret message here..."
                     value={plaintext}
                     onChange={(e) => setPlaintext(e.target.value)}
-                    className="min-h-[140px] sm:min-h-[160px] resize-none text-sm focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="min-h-[140px] sm:min-h-[160px] resize-none focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
 
@@ -389,7 +389,7 @@ function App() {
                         id="encrypted-result"
                         value={encryptedResult}
                         readOnly
-                        className="min-h-[140px] sm:min-h-[160px] resize-none font-mono text-xs bg-muted/50 border-2 border-success/20"
+                        className="min-h-[140px] sm:min-h-[160px] resize-none font-mono bg-muted/50 border-2 border-success/20"
                       />
                       <Button
                         size="sm"
@@ -415,7 +415,7 @@ function App() {
                     placeholder="Paste your encrypted text here..."
                     value={ciphertext}
                     onChange={(e) => setCiphertext(e.target.value)}
-                    className="min-h-[140px] sm:min-h-[160px] resize-none font-mono text-xs focus:ring-2 focus:ring-primary/20 transition-all"
+                    className="min-h-[140px] sm:min-h-[160px] resize-none font-mono focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
 
