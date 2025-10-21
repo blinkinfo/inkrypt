@@ -176,3 +176,135 @@ export function isValidBase64(str: string): boolean {
     return false;
   }
 }
+
+/**
+ * File Encryption/Decryption Functions
+ */
+
+/**
+ * Encrypts a file (ArrayBuffer) with a password
+ * Returns Uint8Array containing: filename length (4 bytes) + filename + salt + iv + ciphertext
+ */
+export async function encryptFile(
+  fileData: ArrayBuffer,
+  fileName: string,
+  password: string
+): Promise<Uint8Array> {
+  if (!fileData || fileData.byteLength === 0) {
+    throw new Error('File data cannot be empty');
+  }
+  if (!password) {
+    throw new Error('Password cannot be empty');
+  }
+
+  // Generate random salt and IV
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+  const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+
+  // Derive key from password
+  const key = await deriveKey(password, salt);
+
+  // Encrypt the file data
+  const ciphertext = await crypto.subtle.encrypt(
+    {
+      name: 'AES-GCM',
+      iv: iv,
+    },
+    key,
+    fileData
+  );
+
+  // Encode filename
+  const encoder = new TextEncoder();
+  const fileNameBytes = encoder.encode(fileName);
+  const fileNameLength = new Uint8Array(4);
+  const view = new DataView(fileNameLength.buffer);
+  view.setUint32(0, fileNameBytes.length, false); // Big-endian
+
+  // Combine: filename length + filename + salt + iv + ciphertext
+  const combined = new Uint8Array(
+    4 + fileNameBytes.length + salt.length + iv.length + ciphertext.byteLength
+  );
+  let offset = 0;
+  combined.set(fileNameLength, offset);
+  offset += 4;
+  combined.set(fileNameBytes, offset);
+  offset += fileNameBytes.length;
+  combined.set(salt, offset);
+  offset += salt.length;
+  combined.set(iv, offset);
+  offset += iv.length;
+  combined.set(new Uint8Array(ciphertext), offset);
+
+  return combined;
+}
+
+/**
+ * Decrypts a file with a password
+ * Returns object containing the decrypted file data and original filename
+ */
+export async function decryptFile(
+  encryptedData: ArrayBuffer,
+  password: string
+): Promise<{ data: ArrayBuffer; fileName: string }> {
+  if (!encryptedData || encryptedData.byteLength === 0) {
+    throw new Error('Encrypted data cannot be empty');
+  }
+  if (!password) {
+    throw new Error('Password cannot be empty');
+  }
+
+  try {
+    const combined = new Uint8Array(encryptedData);
+
+    // Extract filename length
+    const fileNameLengthView = new DataView(combined.buffer, 0, 4);
+    const fileNameLength = fileNameLengthView.getUint32(0, false); // Big-endian
+    let offset = 4;
+
+    // Extract filename
+    const fileNameBytes = combined.slice(offset, offset + fileNameLength);
+    const decoder = new TextDecoder();
+    const fileName = decoder.decode(fileNameBytes);
+    offset += fileNameLength;
+
+    // Extract salt, iv, and ciphertext
+    const salt = combined.slice(offset, offset + SALT_LENGTH);
+    offset += SALT_LENGTH;
+    const iv = combined.slice(offset, offset + IV_LENGTH);
+    offset += IV_LENGTH;
+    const ciphertext = combined.slice(offset);
+
+    // Derive key from password
+    const key = await deriveKey(password, salt);
+
+    // Decrypt the file data
+    const decryptedData = await crypto.subtle.decrypt(
+      {
+        name: 'AES-GCM',
+        iv: iv,
+      },
+      key,
+      ciphertext
+    );
+
+    return {
+      data: decryptedData,
+      fileName: fileName,
+    };
+  } catch (error) {
+    // Don't expose internal error details for security
+    throw new Error('Decryption failed. Please check your password and try again.');
+  }
+}
+
+/**
+ * Formats file size for display
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
