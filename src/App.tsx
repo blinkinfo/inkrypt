@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Lock, Unlock, Copy, Eye, EyeOff, ShieldCheck, Download, File, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
+import { Lock, Unlock, Copy, Eye, EyeOff, ShieldCheck, Download, File, Sparkles, Loader2, CheckCircle2, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -259,7 +259,16 @@ function App() {
 
       <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 pb-8">
         {/* Header */}
-        <header className="text-center space-y-3 pt-4 sm:pt-8 pb-4">
+        <header className="text-center space-y-3 pt-4 sm:pt-8 pb-4 relative">
+          <a
+            href="https://github.com/blinkinfo/inkrypt"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute top-4 right-0 sm:right-4 p-2.5 rounded-xl bg-background border-2 border-muted hover:border-primary/50 transition-all hover:scale-110 shadow-md hover:shadow-lg group"
+            aria-label="View on GitHub"
+          >
+            <Github className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+          </a>
           <div className="inline-flex items-center justify-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-sm animate-fade-in">
             <div className="relative">
               <ShieldCheck className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
@@ -707,12 +716,27 @@ function App() {
         </Card>
 
         {/* Footer */}
-        <footer className="text-center space-y-2 py-6 mt-4">
+        <footer className="text-center space-y-3 py-6 mt-4">
           <p className="text-xs text-muted-foreground">
             Made with security in mind. Always use strong, unique passwords.
           </p>
+          <div className="flex items-center justify-center gap-2">
+            <a
+              href="https://github.com/blinkinfo/inkrypt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group"
+            >
+              <Github className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+              <span className="underline-offset-2 group-hover:underline">View on GitHub</span>
+            </a>
+            <span className="text-xs text-muted-foreground/40">•</span>
+            <p className="text-xs text-muted-foreground/60">
+              Open Source • MIT License
+            </p>
+          </div>
           <p className="text-xs text-muted-foreground/60">
-            © 2024 inkrypt • Open Source • MIT License
+            © 2024 inkrypt
           </p>
         </footer>
       </div>
