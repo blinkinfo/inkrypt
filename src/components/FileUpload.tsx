@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Upload, File, X } from 'lucide-react';
 import { formatFileSize } from '@/lib/crypto';
 import { cn } from '@/lib/utils';
@@ -21,35 +22,79 @@ export function FileUpload({
   inputRef,
   id,
 }: FileUploadProps) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (disabled) return;
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      // Create a synthetic event for onFileSelect
+      const syntheticEvent = {
+        target: {
+          files: files,
+        },
+      } as React.ChangeEvent<HTMLInputElement>;
+      onFileSelect(syntheticEvent);
+    }
+  };
+
   return (
     <div className="space-y-3">
       {!file ? (
         <label
           htmlFor={id}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           className={cn(
             'relative flex flex-col items-center justify-center w-full h-40 sm:h-48',
             'border-2 border-dashed rounded-xl cursor-pointer',
-            'bg-muted/30 hover:bg-muted/50 transition-all duration-200',
+            'bg-muted/30 transition-all duration-200',
             'group',
             disabled
               ? 'opacity-50 cursor-not-allowed'
-              : 'border-muted-foreground/25 hover:border-primary/50'
+              : isDragging
+              ? 'border-primary bg-primary/10 scale-[1.02]'
+              : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
           )}
         >
-          <div className="flex flex-col items-center justify-center gap-3 p-6 text-center">
+          <div className="flex flex-col items-center justify-center gap-3 p-6 text-center pointer-events-none">
             <div className={cn(
               'p-3 rounded-full bg-background shadow-sm',
-              'group-hover:shadow-md group-hover:scale-110 transition-all duration-200',
-              !disabled && 'group-hover:bg-primary/5'
+              'group-hover:shadow-md transition-all duration-200',
+              !disabled && 'group-hover:bg-primary/5',
+              isDragging && 'scale-110 bg-primary/5'
             )}>
               <Upload className={cn(
-                'w-6 h-6 sm:w-8 sm:h-8',
-                disabled ? 'text-muted-foreground' : 'text-primary'
+                'w-6 h-6 sm:w-8 sm:h-8 transition-all',
+                disabled ? 'text-muted-foreground' : isDragging ? 'text-primary animate-pulse' : 'text-primary'
               )} />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">
-                Click to upload or drag and drop
+              <p className={cn(
+                'text-sm font-medium transition-colors',
+                isDragging ? 'text-primary' : 'text-foreground'
+              )}>
+                {isDragging ? 'Drop file here' : 'Click to upload or drag and drop'}
               </p>
               <p className="text-xs text-muted-foreground">
                 Any file up to 100MB

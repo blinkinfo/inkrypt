@@ -1,13 +1,14 @@
-import { useState, useRef } from 'react';
-import { Lock, Unlock, Copy, Eye, EyeOff, ShieldCheck, Download, File, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Lock, Unlock, Copy, Eye, EyeOff, ShieldCheck, Download, File, Sparkles, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileUpload } from '@/components/FileUpload';
+import { PasswordStrength } from '@/components/PasswordStrength';
+import { ToastContainer, type Toast } from '@/components/ui/toast';
 import { encrypt, decrypt, encryptFile, decryptFile } from '@/lib/crypto';
 import { readFileAsArrayBuffer, downloadFile, validateFileSize, sanitizeFileName } from '@/lib/fileUtils';
 
@@ -38,22 +39,41 @@ function App() {
 
   // UI state
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [activeTab, setActiveTab] = useState('encrypt');
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('inkrypt-active-tab') || 'encrypt';
+  });
+
+  // Auto-focus refs
+  const plaintextRef = useRef<HTMLTextAreaElement>(null);
+  const ciphertextRef = useRef<HTMLTextAreaElement>(null);
+
+  // Toast management
+  const showToast = (type: 'success' | 'error', message: string) => {
+    const id = Date.now().toString();
+    setToasts((prev) => [...prev, { id, type, message }]);
+  };
+
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
+  // Persist active tab
+  useEffect(() => {
+    localStorage.setItem('inkrypt-active-tab', activeTab);
+  }, [activeTab]);
 
   const handleEncrypt = async () => {
-    setError('');
-    setSuccess('');
     setEncryptedResult('');
 
     if (!plaintext.trim()) {
-      setError('Please enter text to encrypt');
+      showToast('error', 'Please enter text to encrypt');
+      plaintextRef.current?.focus();
       return;
     }
 
     if (!encryptPassword) {
-      setError('Please enter a password');
+      showToast('error', 'Please enter a password');
       return;
     }
 
@@ -61,26 +81,25 @@ function App() {
     try {
       const result = await encrypt(plaintext, encryptPassword);
       setEncryptedResult(result);
-      setSuccess('Text encrypted successfully!');
+      showToast('success', 'Text encrypted successfully!');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Encryption failed');
+      showToast('error', err instanceof Error ? err.message : 'Encryption failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDecrypt = async () => {
-    setError('');
-    setSuccess('');
     setDecryptedResult('');
 
     if (!ciphertext.trim()) {
-      setError('Please enter text to decrypt');
+      showToast('error', 'Please enter text to decrypt');
+      ciphertextRef.current?.focus();
       return;
     }
 
     if (!decryptPassword) {
-      setError('Please enter a password');
+      showToast('error', 'Please enter a password');
       return;
     }
 
@@ -88,9 +107,9 @@ function App() {
     try {
       const result = await decrypt(ciphertext, decryptPassword);
       setDecryptedResult(result);
-      setSuccess('Text decrypted successfully!');
+      showToast('success', 'Text decrypted successfully!');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Decryption failed');
+      showToast('error', err instanceof Error ? err.message : 'Decryption failed');
     } finally {
       setLoading(false);
     }
@@ -99,27 +118,30 @@ function App() {
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setSuccess('Copied to clipboard!');
-      setTimeout(() => setSuccess(''), 2000);
+      showToast('success', 'Copied to clipboard!');
     } catch {
-      setError('Failed to copy to clipboard');
+      showToast('error', 'Failed to copy to clipboard');
     }
   };
 
   const clearEncryptForm = () => {
+    if (plaintext || encryptPassword || encryptedResult) {
+      if (!confirm('Clear all fields? This action cannot be undone.')) return;
+    }
     setPlaintext('');
     setEncryptPassword('');
     setEncryptedResult('');
-    setError('');
-    setSuccess('');
+    plaintextRef.current?.focus();
   };
 
   const clearDecryptForm = () => {
+    if (ciphertext || decryptPassword || decryptedResult) {
+      if (!confirm('Clear all fields? This action cannot be undone.')) return;
+    }
     setCiphertext('');
     setDecryptPassword('');
     setDecryptedResult('');
-    setError('');
-    setSuccess('');
+    ciphertextRef.current?.focus();
   };
 
   // File encryption handlers
@@ -128,25 +150,22 @@ function App() {
     if (!file) return;
 
     if (!validateFileSize(file, 100)) {
-      setError('File size must be less than 100MB');
+      showToast('error', 'File size must be less than 100MB');
       return;
     }
 
     setFileToEncrypt(file);
-    setError('');
+    showToast('success', `File selected: ${file.name}`);
   };
 
   const handleFileEncrypt = async () => {
-    setError('');
-    setSuccess('');
-
     if (!fileToEncrypt) {
-      setError('Please select a file to encrypt');
+      showToast('error', 'Please select a file to encrypt');
       return;
     }
 
     if (!fileEncryptPassword) {
-      setError('Please enter a password');
+      showToast('error', 'Please enter a password');
       return;
     }
 
@@ -161,22 +180,23 @@ function App() {
       // Download encrypted file
       downloadFile(encryptedData, encryptedFileName);
 
-      setSuccess(`File encrypted successfully! Download started: ${encryptedFileName}`);
+      showToast('success', `File encrypted! Downloading: ${encryptedFileName}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'File encryption failed');
+      showToast('error', err instanceof Error ? err.message : 'File encryption failed');
     } finally {
       setLoading(false);
     }
   };
 
   const clearFileEncryptForm = () => {
+    if (fileToEncrypt || fileEncryptPassword) {
+      if (!confirm('Clear file and password? This action cannot be undone.')) return;
+    }
     setFileToEncrypt(null);
     setFileEncryptPassword('');
     if (fileEncryptInputRef.current) {
       fileEncryptInputRef.current.value = '';
     }
-    setError('');
-    setSuccess('');
   };
 
   // File decryption handlers
@@ -185,25 +205,22 @@ function App() {
     if (!file) return;
 
     if (!validateFileSize(file, 100)) {
-      setError('File size must be less than 100MB');
+      showToast('error', 'File size must be less than 100MB');
       return;
     }
 
     setFileToDecrypt(file);
-    setError('');
+    showToast('success', `File selected: ${file.name}`);
   };
 
   const handleFileDecrypt = async () => {
-    setError('');
-    setSuccess('');
-
     if (!fileToDecrypt) {
-      setError('Please select a file to decrypt');
+      showToast('error', 'Please select a file to decrypt');
       return;
     }
 
     if (!fileDecryptPassword) {
-      setError('Please enter a password');
+      showToast('error', 'Please enter a password');
       return;
     }
 
@@ -216,26 +233,30 @@ function App() {
       const decryptedFileName = sanitizeFileName(fileName);
       downloadFile(data, decryptedFileName);
 
-      setSuccess(`File decrypted successfully! Download started: ${decryptedFileName}`);
+      showToast('success', `File decrypted! Downloading: ${decryptedFileName}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'File decryption failed');
+      showToast('error', err instanceof Error ? err.message : 'File decryption failed');
     } finally {
       setLoading(false);
     }
   };
 
   const clearFileDecryptForm = () => {
+    if (fileToDecrypt || fileDecryptPassword) {
+      if (!confirm('Clear file and password? This action cannot be undone.')) return;
+    }
     setFileToDecrypt(null);
     setFileDecryptPassword('');
     if (fileDecryptInputRef.current) {
       fileDecryptInputRef.current.value = '';
     }
-    setError('');
-    setSuccess('');
   };
 
   return (
     <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6 lg:p-8">
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+
       <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 pb-8">
         {/* Header */}
         <header className="text-center space-y-3 pt-4 sm:pt-8 pb-4">
@@ -252,21 +273,6 @@ function App() {
             Military-grade encryption right in your browser. Zero servers, zero tracking.
           </p>
         </header>
-
-        {/* Alerts */}
-        {error && (
-          <Alert variant="destructive" className="animate-slide-in shadow-lg border-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="font-medium">{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {success && (
-          <Alert className="animate-slide-in bg-success/10 border-2 border-success/50 text-success-foreground shadow-lg">
-            <CheckCircle2 className="h-4 w-4 text-success" />
-            <AlertDescription className="font-medium text-success">{success}</AlertDescription>
-          </Alert>
-        )}
 
         {/* Main Card */}
         <Card className="shadow-xl border-2 overflow-hidden backdrop-blur-sm">
@@ -321,6 +327,7 @@ function App() {
                 <div className="space-y-2.5">
                   <Label htmlFor="plaintext" className="text-sm font-semibold">Text to Encrypt</Label>
                   <Textarea
+                    ref={plaintextRef}
                     id="plaintext"
                     placeholder="Enter your secret message here..."
                     value={plaintext}
@@ -349,12 +356,22 @@ function App() {
                       {showEncryptPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
+                  <PasswordStrength password={encryptPassword} show={encryptPassword.length > 0} />
                 </div>
 
                 <div className="flex gap-2.5 pt-2">
                   <Button onClick={handleEncrypt} disabled={loading} className="flex-1 h-11 font-semibold shadow-md hover:shadow-lg transition-all">
-                    <Lock className="w-4 h-4 mr-2" />
-                    {loading ? 'Encrypting...' : 'Encrypt Text'}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Encrypting...
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-4 h-4 mr-2" />
+                        Encrypt Text
+                      </>
+                    )}
                   </Button>
                   <Button onClick={clearEncryptForm} variant="outline" disabled={loading} className="h-11 px-6">
                     Clear
@@ -393,6 +410,7 @@ function App() {
                 <div className="space-y-2.5">
                   <Label htmlFor="ciphertext" className="text-sm font-semibold">Encrypted Text</Label>
                   <Textarea
+                    ref={ciphertextRef}
                     id="ciphertext"
                     placeholder="Paste your encrypted text here..."
                     value={ciphertext}
@@ -425,8 +443,17 @@ function App() {
 
                 <div className="flex gap-2.5 pt-2">
                   <Button onClick={handleDecrypt} disabled={loading} className="flex-1 h-11 font-semibold shadow-md hover:shadow-lg transition-all">
-                    <Unlock className="w-4 h-4 mr-2" />
-                    {loading ? 'Decrypting...' : 'Decrypt Text'}
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Decrypting...
+                      </>
+                    ) : (
+                      <>
+                        <Unlock className="w-4 h-4 mr-2" />
+                        Decrypt Text
+                      </>
+                    )}
                   </Button>
                   <Button onClick={clearDecryptForm} variant="outline" disabled={loading} className="h-11 px-6">
                     Clear
@@ -508,12 +535,22 @@ function App() {
                         {showFileEncryptPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                    <PasswordStrength password={fileEncryptPassword} show={fileEncryptPassword.length > 0} />
                   </div>
 
                   <div className="flex gap-2.5 pt-2">
                     <Button onClick={handleFileEncrypt} disabled={loading || !fileToEncrypt} className="flex-1 h-11 font-semibold shadow-md hover:shadow-lg transition-all">
-                      <Lock className="w-4 h-4 mr-2" />
-                      {loading ? 'Encrypting...' : 'Encrypt & Download'}
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Encrypting...
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          Encrypt & Download
+                        </>
+                      )}
                     </Button>
                     <Button onClick={clearFileEncryptForm} variant="outline" disabled={loading} className="h-11 px-6">
                       Clear
@@ -572,8 +609,17 @@ function App() {
 
                   <div className="flex gap-2.5 pt-2">
                     <Button onClick={handleFileDecrypt} disabled={loading || !fileToDecrypt} className="flex-1 h-11 font-semibold shadow-md hover:shadow-lg transition-all">
-                      <Unlock className="w-4 h-4 mr-2" />
-                      {loading ? 'Decrypting...' : 'Decrypt & Download'}
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Decrypting...
+                        </>
+                      ) : (
+                        <>
+                          <Unlock className="w-4 h-4 mr-2" />
+                          Decrypt & Download
+                        </>
+                      )}
                     </Button>
                     <Button onClick={clearFileDecryptForm} variant="outline" disabled={loading} className="h-11 px-6">
                       Clear
