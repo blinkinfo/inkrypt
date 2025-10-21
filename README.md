@@ -9,12 +9,27 @@ A secure, open-source, client-side encryption and decryption web application. Al
 
 ## Features
 
+### Encryption
 - **Military-Grade Encryption**: AES-256-GCM with PBKDF2 key derivation
 - **Maximum Security**: 600,000 PBKDF2 iterations (OWASP 2023 recommendation)
+- **Text Encryption**: Encrypt and decrypt text messages with password protection
+- **File Encryption**: Encrypt and decrypt files up to 100MB (all file types supported)
 - **100% Client-Side**: All encryption happens in your browser using Web Crypto API
 - **Zero Data Collection**: No data is ever sent to any server
-- **Modern UI**: Clean, minimal design built with shadcn/ui and Tailwind CSS
-- **Mobile-First**: Fully responsive design that works on all devices
+
+### User Experience
+- **Password Strength Indicator**: Real-time feedback on password quality
+- **Drag-and-Drop**: Intuitive file upload with visual feedback
+- **Toast Notifications**: Non-intrusive success and error messages
+- **Tab Persistence**: Remember your last active tab
+- **Auto-Focus**: Smart keyboard navigation
+- **Confirmation Dialogs**: Prevent accidental data loss
+
+### Design
+- **Modern UI**: Clean, minimal design built with shadcn/ui and Tailwind CSS v4
+- **Mobile-First**: Fully responsive design optimized for all devices
+- **No Auto-Zoom**: Properly sized inputs prevent mobile browser zoom
+- **Dark Mode Ready**: Color scheme supports light and dark themes
 - **Open Source**: Fully transparent and auditable code
 
 ## Security Details
@@ -49,7 +64,7 @@ inkrypt uses industry-standard cryptographic algorithms:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/inkrypt.git
+git clone https://github.com/blinkinfo/inkrypt.git
 cd inkrypt
 
 # Install dependencies
@@ -75,19 +90,35 @@ npm run preview
 
 ### Encrypting Text
 
-1. Select the "Encrypt" tab
+1. Select the "Text Encrypt" tab
 2. Enter your text in the "Text to Encrypt" field
-3. Enter a strong password
-4. Click "Encrypt"
-5. Copy the encrypted result
+3. Enter a strong password (password strength indicator will guide you)
+4. Click "Encrypt Text"
+5. Copy the encrypted result to share securely
 
 ### Decrypting Text
 
-1. Select the "Decrypt" tab
+1. Select the "Text Decrypt" tab
 2. Paste the encrypted text
 3. Enter the same password used for encryption
-4. Click "Decrypt"
+4. Click "Decrypt Text"
 5. View your decrypted message
+
+### Encrypting Files
+
+1. Select the "File" tab
+2. Drag and drop a file or click to browse (max 100MB)
+3. Enter a strong password
+4. Click "Encrypt & Download"
+5. Save the `.encrypted` file to your device
+
+### Decrypting Files
+
+1. Select the "File" tab
+2. Under "Decrypt File", upload the `.encrypted` file
+3. Enter the password used for encryption
+4. Click "Decrypt & Download"
+5. The original file will be restored and downloaded automatically
 
 ## Security Best Practices
 
@@ -115,15 +146,27 @@ When using inkrypt:
 inkrypt/
 ├── src/
 │   ├── components/
-│   │   └── ui/          # shadcn/ui components
+│   │   ├── ui/                    # shadcn/ui components
+│   │   │   ├── button.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── tabs.tsx
+│   │   │   └── toast.tsx
+│   │   ├── FileUpload.tsx         # Drag-and-drop file upload
+│   │   └── PasswordStrength.tsx   # Password strength indicator
 │   ├── lib/
-│   │   ├── crypto.ts    # Encryption/decryption logic
-│   │   └── utils.ts     # Utility functions
-│   ├── App.tsx          # Main application component
-│   ├── main.tsx         # Application entry point
-│   └── index.css        # Global styles
-├── public/              # Static assets
-└── package.json         # Dependencies
+│   │   ├── crypto.ts              # Encryption/decryption logic
+│   │   ├── fileUtils.ts           # File handling utilities
+│   │   ├── passwordStrength.ts    # Password strength calculator
+│   │   └── utils.ts               # General utility functions
+│   ├── App.tsx                    # Main application component
+│   ├── main.tsx                   # Application entry point
+│   └── index.css                  # Global styles and Tailwind config
+├── public/                        # Static assets
+├── index.html                     # HTML template with SEO meta tags
+└── package.json                   # Dependencies
 ```
 
 ## Contributing
