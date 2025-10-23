@@ -18,34 +18,42 @@ export function calculatePasswordStrength(password: string): PasswordStrength {
   let score = 0;
   const feedback: string[] = [];
 
-  // Length check
-  if (password.length >= 8) score++;
-  if (password.length >= 12) score++;
-  if (password.length >= 16) score++;
-  else if (password.length < 8) {
+  // Length check (0-2 points)
+  if (password.length >= 16) {
+    score += 2;
+  } else if (password.length >= 12) {
+    score += 2;
+  } else if (password.length >= 8) {
+    score += 1;
+  } else {
     feedback.push('Use at least 8 characters');
   }
 
-  // Character variety checks
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) {
+  // Character variety checks (0-3 points)
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecialChars = /[^A-Za-z0-9]/.test(password);
+
+  if (hasLowercase && hasUppercase) {
     score++;
   } else {
     feedback.push('Use both uppercase and lowercase letters');
   }
 
-  if (/\d/.test(password)) {
+  if (hasNumbers) {
     score++;
   } else {
     feedback.push('Add numbers');
   }
 
-  if (/[^A-Za-z0-9]/.test(password)) {
+  if (hasSpecialChars) {
     score++;
   } else {
     feedback.push('Add special characters (!@#$%^&*)');
   }
 
-  // Common patterns (reduce score)
+  // Common patterns (penalty)
   const commonPatterns = [
     /^123/,
     /password/i,
@@ -60,14 +68,17 @@ export function calculatePasswordStrength(password: string): PasswordStrength {
     feedback.push('Avoid common patterns');
   }
 
-  // Normalize score to 0-4
-  score = Math.min(4, Math.max(0, Math.floor(score / 1.5)));
+  // Cap score at 4
+  score = Math.min(4, score);
 
   let label = '';
   let color = '';
 
   switch (score) {
     case 0:
+      label = 'Very Weak';
+      color = 'text-destructive';
+      break;
     case 1:
       label = 'Weak';
       color = 'text-destructive';

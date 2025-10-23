@@ -18,13 +18,17 @@ export function PasswordStrength({ password, show = true }: PasswordStrengthProp
           <div
             className={cn(
               'h-full rounded-full transition-all duration-300 ease-out',
-              strength.score === 1
+              strength.score === 0
+                ? 'bg-destructive w-0'
+                : strength.score === 1
                 ? 'bg-destructive w-1/4'
                 : strength.score === 2
                 ? 'bg-orange-500 w-2/4'
                 : strength.score === 3
                 ? 'bg-yellow-500 w-3/4'
-                : 'bg-success w-full'
+                : strength.score === 4
+                ? 'bg-success w-full'
+                : 'bg-muted w-0'
             )}
           />
         </div>
