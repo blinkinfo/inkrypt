@@ -367,7 +367,7 @@ function App() {
                         id="encrypted-result"
                         value={encryptedResult}
                         readOnly
-                        className="font-mono text-xs bg-muted/50"
+                        className="font-mono bg-muted/50"
                       />
                       <Button
                         size="sm"
@@ -393,7 +393,7 @@ function App() {
                     placeholder="Paste encrypted message here..."
                     value={ciphertext}
                     onChange={(e) => setCiphertext(e.target.value)}
-                    className="font-mono text-xs"
+                    className="font-mono"
                   />
                 </div>
 
