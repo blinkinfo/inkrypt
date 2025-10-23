@@ -259,31 +259,25 @@ function App() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Header */}
-        <header className="text-center space-y-5 mb-16 animate-fade-in">
-          <div className="flex flex-col items-center gap-4">
-            <div className="inline-flex items-center justify-center gap-3">
-              <ShieldCheck className="w-10 h-10 sm:w-11 sm:h-11 text-primary" />
-              <h1 className="text-5xl sm:text-6xl font-bold text-foreground tracking-tight">
-                inkrypt
-              </h1>
-            </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-              <span className="text-xs font-medium text-muted-foreground">100% Client-Side</span>
-            </div>
-          </div>
-          <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
-            Military-grade encryption in your browser. Your data never leaves your device.
-          </p>
+        <header className="relative text-center mb-8 animate-fade-in">
           <a
             href="https://github.com/blinkinfo/inkrypt"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+            className="absolute top-0 right-0 p-2 rounded-lg hover:bg-muted/50 transition-all group"
+            aria-label="View on GitHub"
           >
-            <Github className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            <span>Open Source on GitHub</span>
+            <Github className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </a>
+          <div className="inline-flex items-center justify-center gap-2.5 mb-2">
+            <ShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+              inkrypt
+            </h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Client-side encryption for your sensitive data
+          </p>
         </header>
 
         {/* Main Card */}
