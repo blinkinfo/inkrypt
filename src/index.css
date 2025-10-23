@@ -1,53 +1,55 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #fafafa;
-  --color-foreground: #0a0a0a;
+  /* Notion-like light theme - soft, minimal colors */
+  --color-background: #ffffff;
+  --color-foreground: #37352f;
   --color-card: #ffffff;
-  --color-card-foreground: #0a0a0a;
+  --color-card-foreground: #37352f;
   --color-popover: #ffffff;
-  --color-popover-foreground: #0a0a0a;
-  --color-primary: #6366f1;
+  --color-popover-foreground: #37352f;
+  --color-primary: #2383e2;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f4f4f5;
-  --color-secondary-foreground: #18181b;
-  --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
-  --color-accent: #f4f4f5;
-  --color-accent-foreground: #18181b;
-  --color-destructive: #ef4444;
+  --color-secondary: #f7f6f3;
+  --color-secondary-foreground: #37352f;
+  --color-muted: #f7f6f3;
+  --color-muted-foreground: #9b9a97;
+  --color-accent: #f1f0ef;
+  --color-accent-foreground: #37352f;
+  --color-destructive: #eb5757;
   --color-destructive-foreground: #ffffff;
-  --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
-  --color-ring: #6366f1;
-  --radius: 0.75rem;
-  --color-success: #22c55e;
+  --color-border: #e9e9e7;
+  --color-input: #e9e9e7;
+  --color-ring: #2383e2;
+  --radius: 0.5rem;
+  --color-success: #0f7b6c;
   --color-success-foreground: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
   @theme {
-    --color-background: #09090b;
-    --color-foreground: #fafafa;
-    --color-card: #18181b;
-    --color-card-foreground: #fafafa;
-    --color-popover: #18181b;
-    --color-popover-foreground: #fafafa;
-    --color-primary: #818cf8;
-    --color-primary-foreground: #18181b;
-    --color-secondary: #27272a;
-    --color-secondary-foreground: #fafafa;
-    --color-muted: #27272a;
-    --color-muted-foreground: #a1a1aa;
-    --color-accent: #27272a;
-    --color-accent-foreground: #fafafa;
-    --color-destructive: #dc2626;
-    --color-destructive-foreground: #fafafa;
-    --color-border: #27272a;
-    --color-input: #27272a;
-    --color-ring: #818cf8;
-    --color-success: #16a34a;
-    --color-success-foreground: #fafafa;
+    /* Notion-like dark theme - deep, sophisticated colors */
+    --color-background: #191919;
+    --color-foreground: #e3e2e0;
+    --color-card: #1f1f1f;
+    --color-card-foreground: #e3e2e0;
+    --color-popover: #1f1f1f;
+    --color-popover-foreground: #e3e2e0;
+    --color-primary: #3b97e3;
+    --color-primary-foreground: #ffffff;
+    --color-secondary: #2f2f2f;
+    --color-secondary-foreground: #e3e2e0;
+    --color-muted: #2f2f2f;
+    --color-muted-foreground: #9b9a97;
+    --color-accent: #373737;
+    --color-accent-foreground: #e3e2e0;
+    --color-destructive: #eb5757;
+    --color-destructive-foreground: #ffffff;
+    --color-border: #2f2f2f;
+    --color-input: #2f2f2f;
+    --color-ring: #3b97e3;
+    --color-success: #0f7b6c;
+    --color-success-foreground: #ffffff;
   }
 }
 
@@ -61,12 +63,14 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -83,10 +87,32 @@ body {
   }
 }
 
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .animate-slide-in {
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-duration: 150ms;
 }

@@ -12,35 +12,30 @@ export function PasswordStrength({ password, show = true }: PasswordStrengthProp
   const strength = calculatePasswordStrength(password);
 
   return (
-    <div className="space-y-2 animate-fade-in">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex-1 flex gap-1">
-          {[0, 1, 2, 3].map((index) => (
-            <div
-              key={index}
-              className={cn(
-                'h-1.5 flex-1 rounded-full transition-all duration-300',
-                index < strength.score
-                  ? strength.score === 1
-                    ? 'bg-destructive'
-                    : strength.score === 2
-                    ? 'bg-orange-500'
-                    : strength.score === 3
-                    ? 'bg-yellow-500'
-                    : 'bg-success'
-                  : 'bg-muted'
-              )}
-            />
-          ))}
+    <div className="space-y-2.5 animate-fade-in">
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+          <div
+            className={cn(
+              'h-full rounded-full transition-all duration-300 ease-out',
+              strength.score === 1
+                ? 'bg-destructive w-1/4'
+                : strength.score === 2
+                ? 'bg-orange-500 w-2/4'
+                : strength.score === 3
+                ? 'bg-yellow-500 w-3/4'
+                : 'bg-success w-full'
+            )}
+          />
         </div>
-        <span className={cn('text-xs font-semibold', strength.color)}>
+        <span className={cn('text-xs font-medium whitespace-nowrap', strength.color)}>
           {strength.label}
         </span>
       </div>
       {strength.feedback.length > 0 && (
-        <div className="text-xs text-muted-foreground space-y-0.5">
+        <div className="text-xs text-muted-foreground space-y-1 pl-0.5">
           {strength.feedback.map((tip, index) => (
-            <p key={index}>• {tip}</p>
+            <p key={index} className="leading-relaxed">• {tip}</p>
           ))}
         </div>
       )}

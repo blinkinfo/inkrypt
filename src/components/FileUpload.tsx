@@ -66,35 +66,34 @@ export function FileUpload({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            'relative flex flex-col items-center justify-center w-full h-40 sm:h-48',
-            'border-2 border-dashed rounded-xl cursor-pointer',
-            'bg-muted/30 transition-all duration-200',
+            'relative flex flex-col items-center justify-center w-full h-44 sm:h-52',
+            'border-2 border-dashed rounded-lg cursor-pointer',
+            'bg-muted/20 transition-all',
             'group',
             disabled
               ? 'opacity-50 cursor-not-allowed'
               : isDragging
-              ? 'border-primary bg-primary/10 scale-[1.02]'
-              : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
+              ? 'border-primary bg-primary/5 scale-[1.01]'
+              : 'border-border hover:border-primary/40 hover:bg-muted/30'
           )}
         >
-          <div className="flex flex-col items-center justify-center gap-3 p-6 text-center pointer-events-none">
+          <div className="flex flex-col items-center justify-center gap-3.5 p-6 text-center pointer-events-none">
             <div className={cn(
-              'p-3 rounded-full bg-background shadow-sm',
-              'group-hover:shadow-md transition-all duration-200',
-              !disabled && 'group-hover:bg-primary/5',
-              isDragging && 'scale-110 bg-primary/5'
+              'p-4 rounded-full bg-background border transition-all',
+              !disabled && 'group-hover:border-primary/30 group-hover:bg-primary/5',
+              isDragging && 'scale-110 bg-primary/10 border-primary/40'
             )}>
               <Upload className={cn(
-                'w-6 h-6 sm:w-8 sm:h-8 transition-all',
-                disabled ? 'text-muted-foreground' : isDragging ? 'text-primary animate-pulse' : 'text-primary'
+                'w-7 h-7 sm:w-8 sm:h-8 transition-all',
+                disabled ? 'text-muted-foreground' : isDragging ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
               )} />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <p className={cn(
                 'text-sm font-medium transition-colors',
                 isDragging ? 'text-primary' : 'text-foreground'
               )}>
-                {isDragging ? 'Drop file here' : 'Click to upload or drag and drop'}
+                {isDragging ? 'Drop your file here' : 'Click to upload or drag and drop'}
               </p>
               <p className="text-xs text-muted-foreground">
                 Any file up to 100MB
@@ -112,23 +111,24 @@ export function FileUpload({
           />
         </label>
       ) : (
-        <div className="relative flex items-center gap-3 p-4 rounded-xl border-2 border-primary/20 bg-primary/5 animate-fade-in">
-          <div className="flex-shrink-0 p-2 rounded-lg bg-primary/10">
+        <div className="relative flex items-center gap-3.5 p-4 rounded-lg border border-border bg-muted/30 animate-scale-in">
+          <div className="flex-shrink-0 p-2.5 rounded-lg bg-primary/10 border border-primary/20">
             <File className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
               {file.name}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {formatFileSize(file.size)}
             </p>
           </div>
           {!disabled && (
             <button
               onClick={onClear}
-              className="flex-shrink-0 p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+              className="flex-shrink-0 p-2 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all active:scale-95"
               type="button"
+              aria-label="Remove file"
             >
               <X className="w-4 h-4" />
             </button>
