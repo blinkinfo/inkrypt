@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Lock, Unlock, Copy, Eye, EyeOff, ShieldCheck, Download, File, Loader2, CheckCircle2, Github, Settings as SettingsIcon, Check, FileText, Key } from 'lucide-react';
+import { Lock, Unlock, Copy, Eye, EyeOff, ShieldCheck, Download, File, Loader2, CheckCircle2, Github, Settings as SettingsIcon, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,6 @@ import { PasswordStrength } from '@/components/PasswordStrength';
 import { ToastContainer, type Toast } from '@/components/ui/toast';
 import { Settings } from '@/components/Settings';
 import { CharacterCount } from '@/components/CharacterCount';
-import { EmptyState } from '@/components/EmptyState';
 import { usePasswordVisibility } from '@/hooks/usePasswordVisibility';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -397,21 +396,14 @@ function App() {
               <TabsContent value="encrypt" className="space-y-6 p-6 sm:p-8 m-0">
                 <div className="space-y-3">
                   <Label htmlFor="plaintext" className="text-sm font-medium text-foreground">Message</Label>
-                  <div className="relative">
-                    <Textarea
-                      ref={plaintextRef}
-                      id="plaintext"
-                      placeholder="Type your message here..."
-                      value={plaintext}
-                      onChange={(e) => setPlaintext(e.target.value)}
-                      aria-label="Message to encrypt"
-                    />
-                    <EmptyState
-                      icon={<FileText className="w-12 h-12" />}
-                      message="Enter your message to encrypt"
-                      show={!plaintext}
-                    />
-                  </div>
+                  <Textarea
+                    ref={plaintextRef}
+                    id="plaintext"
+                    placeholder="Type your message here..."
+                    value={plaintext}
+                    onChange={(e) => setPlaintext(e.target.value)}
+                    aria-label="Message to encrypt"
+                  />
                   <CharacterCount text={plaintext} show={settings.showCharacterCount && plaintext.length > 0} />
                 </div>
 
@@ -500,22 +492,15 @@ function App() {
               <TabsContent value="decrypt" className="space-y-6 p-6 sm:p-8 m-0">
                 <div className="space-y-3">
                   <Label htmlFor="ciphertext" className="text-sm font-medium text-foreground">Encrypted Message</Label>
-                  <div className="relative">
-                    <Textarea
-                      ref={ciphertextRef}
-                      id="ciphertext"
-                      placeholder="Paste encrypted message here..."
-                      value={ciphertext}
-                      onChange={(e) => setCiphertext(e.target.value)}
-                      className="font-mono"
-                      aria-label="Encrypted message to decrypt"
-                    />
-                    <EmptyState
-                      icon={<Key className="w-12 h-12" />}
-                      message="Paste encrypted message to decrypt"
-                      show={!ciphertext}
-                    />
-                  </div>
+                  <Textarea
+                    ref={ciphertextRef}
+                    id="ciphertext"
+                    placeholder="Paste encrypted message here..."
+                    value={ciphertext}
+                    onChange={(e) => setCiphertext(e.target.value)}
+                    className="font-mono"
+                    aria-label="Encrypted message to decrypt"
+                  />
                   <CharacterCount text={ciphertext} show={settings.showCharacterCount && ciphertext.length > 0} />
                 </div>
 
