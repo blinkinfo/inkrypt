@@ -259,25 +259,31 @@ function App() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Header */}
-        <header className="text-center space-y-4 mb-12 relative">
+        <header className="text-center space-y-5 mb-16 animate-fade-in">
+          <div className="flex flex-col items-center gap-4">
+            <div className="inline-flex items-center justify-center gap-3">
+              <ShieldCheck className="w-10 h-10 sm:w-11 sm:h-11 text-primary" />
+              <h1 className="text-5xl sm:text-6xl font-bold text-foreground tracking-tight">
+                inkrypt
+              </h1>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+              <span className="text-xs font-medium text-muted-foreground">100% Client-Side</span>
+            </div>
+          </div>
+          <p className="text-muted-foreground text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
+            Military-grade encryption in your browser. Your data never leaves your device.
+          </p>
           <a
             href="https://github.com/blinkinfo/inkrypt"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute -top-2 right-0 p-2 rounded-lg hover:bg-muted/50 transition-all group"
-            aria-label="View on GitHub"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors group"
           >
-            <Github className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            <Github className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            <span>Open Source on GitHub</span>
           </a>
-          <div className="inline-flex items-center justify-center gap-3 animate-fade-in">
-            <ShieldCheck className="w-9 h-9 sm:w-10 sm:h-10 text-primary" />
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight">
-              inkrypt
-            </h1>
-          </div>
-          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            Military-grade encryption in your browser. Zero servers, zero tracking.
-          </p>
         </header>
 
         {/* Main Card */}
@@ -648,24 +654,30 @@ function App() {
         </div>
 
         {/* Footer */}
-        <footer className="text-center space-y-4 py-12 mt-8">
-          <p className="text-sm text-muted-foreground">
-            Always use strong, unique passwords.
-          </p>
-          <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+        <footer className="text-center space-y-6 py-16 mt-12 border-t border-border/50">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-primary" />
+              <span>All encryption happens locally in your browser</span>
+            </div>
+            <p className="text-xs text-muted-foreground/80 max-w-md mx-auto leading-relaxed">
+              We recommend using strong, unique passwords and storing them in a password manager.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
             <a
               href="https://github.com/blinkinfo/inkrypt"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors inline-flex items-center gap-1.5"
+              className="hover:text-foreground transition-colors inline-flex items-center gap-1.5 group"
             >
-              <Github className="w-4 h-4" />
-              GitHub
+              <Github className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+              <span>View Source</span>
             </a>
-            <span>•</span>
+            <span className="text-muted-foreground/40">•</span>
             <span>MIT License</span>
-            <span>•</span>
-            <span>© 2024</span>
+            <span className="text-muted-foreground/40">•</span>
+            <span>Open Source</span>
           </div>
         </footer>
       </div>
