@@ -188,7 +188,8 @@ export function isValidBase64(str: string): boolean {
 export async function encryptFile(
   fileData: ArrayBuffer,
   fileName: string,
-  password: string
+  password: string,
+  onProgress?: (percent: number) => void
 ): Promise<Uint8Array> {
   if (!fileData || fileData.byteLength === 0) {
     throw new Error('File data cannot be empty');
@@ -200,9 +201,11 @@ export async function encryptFile(
   // Generate random salt and IV
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+  onProgress?.(10);
 
-  // Derive key from password
+  // Derive key from password (computationally expensive)
   const key = await deriveKey(password, salt);
+  onProgress?.(40);
 
   // Encrypt the file data
   const ciphertext = await crypto.subtle.encrypt(
@@ -213,6 +216,7 @@ export async function encryptFile(
     key,
     fileData
   );
+  onProgress?.(80);
 
   // Encode filename
   const encoder = new TextEncoder();
@@ -235,6 +239,7 @@ export async function encryptFile(
   combined.set(iv, offset);
   offset += iv.length;
   combined.set(new Uint8Array(ciphertext), offset);
+  onProgress?.(100);
 
   return combined;
 }
@@ -245,7 +250,8 @@ export async function encryptFile(
  */
 export async function decryptFile(
   encryptedData: ArrayBuffer,
-  password: string
+  password: string,
+  onProgress?: (percent: number) => void
 ): Promise<{ data: ArrayBuffer; fileName: string }> {
   if (!encryptedData || encryptedData.byteLength === 0) {
     throw new Error('Encrypted data cannot be empty');
@@ -256,6 +262,7 @@ export async function decryptFile(
 
   try {
     const combined = new Uint8Array(encryptedData);
+    onProgress?.(10);
 
     // Extract filename length
     const fileNameLengthView = new DataView(combined.buffer, 0, 4);
@@ -274,9 +281,11 @@ export async function decryptFile(
     const iv = combined.slice(offset, offset + IV_LENGTH);
     offset += IV_LENGTH;
     const ciphertext = combined.slice(offset);
+    onProgress?.(20);
 
-    // Derive key from password
+    // Derive key from password (computationally expensive)
     const key = await deriveKey(password, salt);
+    onProgress?.(50);
 
     // Decrypt the file data
     const decryptedData = await crypto.subtle.decrypt(
@@ -287,6 +296,7 @@ export async function decryptFile(
       key,
       ciphertext
     );
+    onProgress?.(100);
 
     return {
       data: decryptedData,

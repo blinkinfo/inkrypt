@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { Lock, Unlock, Copy, Eye, EyeOff, ShieldCheck, Download, File, Loader2, CheckCircle2, Github } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Lock, Unlock, Copy, Eye, EyeOff, ShieldCheck, Download, File, Loader2, CheckCircle2, Github, Settings as SettingsIcon, Check, FileText, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,40 +9,61 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileUpload } from '@/components/FileUpload';
 import { PasswordStrength } from '@/components/PasswordStrength';
 import { ToastContainer, type Toast } from '@/components/ui/toast';
+import { Settings } from '@/components/Settings';
+import { CharacterCount } from '@/components/CharacterCount';
+import { EmptyState } from '@/components/EmptyState';
+import { usePasswordVisibility } from '@/hooks/usePasswordVisibility';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useDarkMode } from '@/hooks/useDarkMode';
 import { encrypt, decrypt, encryptFile, decryptFile } from '@/lib/crypto';
 import { readFileAsArrayBuffer, downloadFile, validateFileSize, sanitizeFileName } from '@/lib/fileUtils';
 
+interface AppSettings {
+  autoClearPasswords: boolean;
+  showKeyboardShortcuts: boolean;
+  showCharacterCount: boolean;
+}
+
 function App() {
+  // Theme and settings
+  const { theme, setTheme } = useDarkMode();
+  const [settings, setSettings] = useLocalStorage<AppSettings>('inkrypt-settings', {
+    autoClearPasswords: false,
+    showKeyboardShortcuts: true,
+    showCharacterCount: true,
+  });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   // Encrypt state
   const [plaintext, setPlaintext] = useState('');
   const [encryptPassword, setEncryptPassword] = useState('');
   const [encryptedResult, setEncryptedResult] = useState('');
-  const [showEncryptPassword, setShowEncryptPassword] = useState(false);
+  const encryptPasswordVisibility = usePasswordVisibility();
 
   // Decrypt state
   const [ciphertext, setCiphertext] = useState('');
   const [decryptPassword, setDecryptPassword] = useState('');
   const [decryptedResult, setDecryptedResult] = useState('');
-  const [showDecryptPassword, setShowDecryptPassword] = useState(false);
+  const decryptPasswordVisibility = usePasswordVisibility();
 
   // File encryption state
   const [fileToEncrypt, setFileToEncrypt] = useState<File | null>(null);
   const [fileEncryptPassword, setFileEncryptPassword] = useState('');
-  const [showFileEncryptPassword, setShowFileEncryptPassword] = useState(false);
+  const fileEncryptPasswordVisibility = usePasswordVisibility();
   const fileEncryptInputRef = useRef<HTMLInputElement>(null);
 
   // File decryption state
   const [fileToDecrypt, setFileToDecrypt] = useState<File | null>(null);
   const [fileDecryptPassword, setFileDecryptPassword] = useState('');
-  const [showFileDecryptPassword, setShowFileDecryptPassword] = useState(false);
+  const fileDecryptPasswordVisibility = usePasswordVisibility();
   const fileDecryptInputRef = useRef<HTMLInputElement>(null);
 
   // UI state
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('inkrypt-active-tab') || 'encrypt';
-  });
+  const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
+  const [activeTab, setActiveTab] = useLocalStorage('inkrypt-active-tab', 'encrypt');
 
   // Auto-focus refs
   const plaintextRef = useRef<HTMLTextAreaElement>(null);
@@ -57,11 +78,6 @@ function App() {
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
-
-  // Persist active tab
-  useEffect(() => {
-    localStorage.setItem('inkrypt-active-tab', activeTab);
-  }, [activeTab]);
 
   const handleEncrypt = async () => {
     setEncryptedResult('');
@@ -82,6 +98,12 @@ function App() {
       const result = await encrypt(plaintext, encryptPassword);
       setEncryptedResult(result);
       showToast('success', 'Text encrypted successfully!');
+
+      // Auto-clear password if enabled
+      if (settings.autoClearPasswords) {
+        setEncryptPassword('');
+        encryptPasswordVisibility.hide();
+      }
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Encryption failed');
     } finally {
@@ -108,6 +130,12 @@ function App() {
       const result = await decrypt(ciphertext, decryptPassword);
       setDecryptedResult(result);
       showToast('success', 'Text decrypted successfully!');
+
+      // Auto-clear password if enabled
+      if (settings.autoClearPasswords) {
+        setDecryptPassword('');
+        decryptPasswordVisibility.hide();
+      }
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Decryption failed');
     } finally {
@@ -115,14 +143,41 @@ function App() {
     }
   };
 
-  const copyToClipboard = async (text: string) => {
+  const copyToClipboard = async (text: string, id: string = 'default') => {
     try {
       await navigator.clipboard.writeText(text);
       showToast('success', 'Copied to clipboard!');
+
+      // Show checkmark feedback
+      setCopiedStates((prev) => ({ ...prev, [id]: true }));
+      setTimeout(() => {
+        setCopiedStates((prev) => ({ ...prev, [id]: false }));
+      }, 2000);
     } catch {
       showToast('error', 'Failed to copy to clipboard');
     }
   };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts(
+    activeTab,
+    {
+      onEncrypt: handleEncrypt,
+      onDecrypt: handleDecrypt,
+      onClear: () => {
+        if (activeTab === 'encrypt') clearEncryptForm();
+        else if (activeTab === 'decrypt') clearDecryptForm();
+      },
+      onCopy: () => {
+        if (activeTab === 'encrypt' && encryptedResult) {
+          copyToClipboard(encryptedResult, 'encrypted-result');
+        } else if (activeTab === 'decrypt' && decryptedResult) {
+          copyToClipboard(decryptedResult, 'decrypted-result');
+        }
+      },
+    },
+    settings.showKeyboardShortcuts
+  );
 
   const clearEncryptForm = () => {
     if (plaintext || encryptPassword || encryptedResult) {
@@ -131,6 +186,7 @@ function App() {
     setPlaintext('');
     setEncryptPassword('');
     setEncryptedResult('');
+    encryptPasswordVisibility.hide();
     plaintextRef.current?.focus();
   };
 
@@ -141,6 +197,7 @@ function App() {
     setCiphertext('');
     setDecryptPassword('');
     setDecryptedResult('');
+    decryptPasswordVisibility.hide();
     ciphertextRef.current?.focus();
   };
 
@@ -181,6 +238,12 @@ function App() {
       downloadFile(encryptedData, encryptedFileName);
 
       showToast('success', `File encrypted! Downloading: ${encryptedFileName}`);
+
+      // Auto-clear password if enabled
+      if (settings.autoClearPasswords) {
+        setFileEncryptPassword('');
+        fileEncryptPasswordVisibility.hide();
+      }
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'File encryption failed');
     } finally {
@@ -194,6 +257,7 @@ function App() {
     }
     setFileToEncrypt(null);
     setFileEncryptPassword('');
+    fileEncryptPasswordVisibility.hide();
     if (fileEncryptInputRef.current) {
       fileEncryptInputRef.current.value = '';
     }
@@ -234,6 +298,12 @@ function App() {
       downloadFile(data, decryptedFileName);
 
       showToast('success', `File decrypted! Downloading: ${decryptedFileName}`);
+
+      // Auto-clear password if enabled
+      if (settings.autoClearPasswords) {
+        setFileDecryptPassword('');
+        fileDecryptPasswordVisibility.hide();
+      }
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'File decryption failed');
     } finally {
@@ -247,6 +317,7 @@ function App() {
     }
     setFileToDecrypt(null);
     setFileDecryptPassword('');
+    fileDecryptPasswordVisibility.hide();
     if (fileDecryptInputRef.current) {
       fileDecryptInputRef.current.value = '';
     }
@@ -257,18 +328,39 @@ function App() {
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
 
+      {/* Settings Panel */}
+      <Settings
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={settings}
+        onSettingsChange={(key, value) => {
+          setSettings((prev) => ({ ...prev, [key]: value }));
+        }}
+        theme={theme}
+        onThemeChange={setTheme}
+      />
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         {/* Header */}
         <header className="relative text-center mb-8 animate-fade-in">
-          <a
-            href="https://github.com/blinkinfo/inkrypt"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute top-0 right-0 p-2 rounded-lg hover:bg-muted/50 transition-all group"
-            aria-label="View on GitHub"
-          >
-            <Github className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </a>
+          <div className="absolute top-0 right-0 flex items-center gap-2">
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="p-2 rounded-lg hover:bg-muted/50 transition-all group"
+              aria-label="Settings"
+            >
+              <SettingsIcon className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </button>
+            <a
+              href="https://github.com/blinkinfo/inkrypt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg hover:bg-muted/50 transition-all group"
+              aria-label="View on GitHub"
+            >
+              <Github className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </a>
+          </div>
           <div className="inline-flex items-center justify-center gap-2.5 mb-2">
             <ShieldCheck className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
@@ -305,13 +397,22 @@ function App() {
               <TabsContent value="encrypt" className="space-y-6 p-6 sm:p-8 m-0">
                 <div className="space-y-3">
                   <Label htmlFor="plaintext" className="text-sm font-medium text-foreground">Message</Label>
-                  <Textarea
-                    ref={plaintextRef}
-                    id="plaintext"
-                    placeholder="Type your message here..."
-                    value={plaintext}
-                    onChange={(e) => setPlaintext(e.target.value)}
-                  />
+                  <div className="relative">
+                    <Textarea
+                      ref={plaintextRef}
+                      id="plaintext"
+                      placeholder="Type your message here..."
+                      value={plaintext}
+                      onChange={(e) => setPlaintext(e.target.value)}
+                      aria-label="Message to encrypt"
+                    />
+                    <EmptyState
+                      icon={<FileText className="w-12 h-12" />}
+                      message="Enter your message to encrypt"
+                      show={!plaintext}
+                    />
+                  </div>
+                  <CharacterCount text={plaintext} show={settings.showCharacterCount && plaintext.length > 0} />
                 </div>
 
                 <div className="space-y-3">
@@ -319,19 +420,20 @@ function App() {
                   <div className="relative">
                     <Input
                       id="encrypt-password"
-                      type={showEncryptPassword ? 'text' : 'password'}
+                      type={encryptPasswordVisibility.show ? 'text' : 'password'}
                       placeholder="Create a strong password"
                       value={encryptPassword}
                       onChange={(e) => setEncryptPassword(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleEncrypt()}
+                      aria-label="Encryption password"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowEncryptPassword(!showEncryptPassword)}
+                      onClick={encryptPasswordVisibility.toggle}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted/50"
-                      aria-label={showEncryptPassword ? 'Hide password' : 'Show password'}
+                      aria-label={encryptPasswordVisibility.show ? 'Hide password' : 'Show password'}
                     >
-                      {showEncryptPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {encryptPasswordVisibility.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   <PasswordStrength password={encryptPassword} show={encryptPassword.length > 0} />
@@ -368,15 +470,26 @@ function App() {
                         value={encryptedResult}
                         readOnly
                         className="font-mono bg-muted/50"
+                        aria-label="Encrypted result"
                       />
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => copyToClipboard(encryptedResult)}
+                        onClick={() => copyToClipboard(encryptedResult, 'encrypted-result')}
                         className="absolute right-2 top-2"
+                        aria-label="Copy encrypted message"
                       >
-                        <Copy className="w-3.5 h-3.5 mr-1.5" />
-                        Copy
+                        {copiedStates['encrypted-result'] ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 mr-1.5" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 mr-1.5" />
+                            Copy
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -387,14 +500,23 @@ function App() {
               <TabsContent value="decrypt" className="space-y-6 p-6 sm:p-8 m-0">
                 <div className="space-y-3">
                   <Label htmlFor="ciphertext" className="text-sm font-medium text-foreground">Encrypted Message</Label>
-                  <Textarea
-                    ref={ciphertextRef}
-                    id="ciphertext"
-                    placeholder="Paste encrypted message here..."
-                    value={ciphertext}
-                    onChange={(e) => setCiphertext(e.target.value)}
-                    className="font-mono"
-                  />
+                  <div className="relative">
+                    <Textarea
+                      ref={ciphertextRef}
+                      id="ciphertext"
+                      placeholder="Paste encrypted message here..."
+                      value={ciphertext}
+                      onChange={(e) => setCiphertext(e.target.value)}
+                      className="font-mono"
+                      aria-label="Encrypted message to decrypt"
+                    />
+                    <EmptyState
+                      icon={<Key className="w-12 h-12" />}
+                      message="Paste encrypted message to decrypt"
+                      show={!ciphertext}
+                    />
+                  </div>
+                  <CharacterCount text={ciphertext} show={settings.showCharacterCount && ciphertext.length > 0} />
                 </div>
 
                 <div className="space-y-3">
@@ -402,19 +524,20 @@ function App() {
                   <div className="relative">
                     <Input
                       id="decrypt-password"
-                      type={showDecryptPassword ? 'text' : 'password'}
+                      type={decryptPasswordVisibility.show ? 'text' : 'password'}
                       placeholder="Enter your password"
                       value={decryptPassword}
                       onChange={(e) => setDecryptPassword(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleDecrypt()}
+                      aria-label="Decryption password"
                     />
                     <button
                       type="button"
-                      onClick={() => setShowDecryptPassword(!showDecryptPassword)}
+                      onClick={decryptPasswordVisibility.toggle}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted/50"
-                      aria-label={showDecryptPassword ? 'Hide password' : 'Show password'}
+                      aria-label={decryptPasswordVisibility.show ? 'Hide password' : 'Show password'}
                     >
-                      {showDecryptPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {decryptPasswordVisibility.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
@@ -450,15 +573,26 @@ function App() {
                         value={decryptedResult}
                         readOnly
                         className="bg-muted/50"
+                        aria-label="Decrypted result"
                       />
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => copyToClipboard(decryptedResult)}
+                        onClick={() => copyToClipboard(decryptedResult, 'decrypted-result')}
                         className="absolute right-2 top-2"
+                        aria-label="Copy decrypted message"
                       >
-                        <Copy className="w-3.5 h-3.5 mr-1.5" />
-                        Copy
+                        {copiedStates['decrypted-result'] ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 mr-1.5" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 mr-1.5" />
+                            Copy
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -496,19 +630,20 @@ function App() {
                     <div className="relative">
                       <Input
                         id="file-encrypt-password"
-                        type={showFileEncryptPassword ? 'text' : 'password'}
+                        type={fileEncryptPasswordVisibility.show ? 'text' : 'password'}
                         placeholder="Create a strong password"
                         value={fileEncryptPassword}
                         onChange={(e) => setFileEncryptPassword(e.target.value)}
                         disabled={loading}
+                        aria-label="File encryption password"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowFileEncryptPassword(!showFileEncryptPassword)}
+                        onClick={fileEncryptPasswordVisibility.toggle}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted/50"
-                        aria-label={showFileEncryptPassword ? 'Hide password' : 'Show password'}
+                        aria-label={fileEncryptPasswordVisibility.show ? 'Hide password' : 'Show password'}
                       >
-                        {showFileEncryptPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {fileEncryptPasswordVisibility.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                     <PasswordStrength password={fileEncryptPassword} show={fileEncryptPassword.length > 0} />
@@ -566,19 +701,20 @@ function App() {
                     <div className="relative">
                       <Input
                         id="file-decrypt-password"
-                        type={showFileDecryptPassword ? 'text' : 'password'}
+                        type={fileDecryptPasswordVisibility.show ? 'text' : 'password'}
                         placeholder="Enter your password"
                         value={fileDecryptPassword}
                         onChange={(e) => setFileDecryptPassword(e.target.value)}
                         disabled={loading}
+                        aria-label="File decryption password"
                       />
                       <button
                         type="button"
-                        onClick={() => setShowFileDecryptPassword(!showFileDecryptPassword)}
+                        onClick={fileDecryptPasswordVisibility.toggle}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-md hover:bg-muted/50"
-                        aria-label={showFileDecryptPassword ? 'Hide password' : 'Show password'}
+                        aria-label={fileDecryptPasswordVisibility.show ? 'Hide password' : 'Show password'}
                       >
-                        {showFileDecryptPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {fileDecryptPasswordVisibility.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
