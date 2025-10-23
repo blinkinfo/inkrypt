@@ -475,9 +475,9 @@ function App() {
               <TabsContent value="file" className="space-y-8 p-6 sm:p-8 m-0">
                 {/* File Encryption Section */}
                 <div className="space-y-5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <Lock className="w-5 h-5 text-primary" />
-                    <h3 className="text-base font-semibold">Encrypt File</h3>
+                    <h3 className="text-lg font-semibold">Encrypt File</h3>
                   </div>
 
                   <div className="space-y-3">
@@ -544,9 +544,9 @@ function App() {
 
                 {/* File Decryption Section */}
                 <div className="space-y-5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     <Unlock className="w-5 h-5 text-primary" />
-                    <h3 className="text-base font-semibold">Decrypt File</h3>
+                    <h3 className="text-lg font-semibold">Decrypt File</h3>
                   </div>
 
                   <div className="space-y-3">
@@ -626,26 +626,26 @@ function App() {
         </Card>
 
         {/* Security Features */}
-        <div className="mt-12 space-y-4">
-          <h2 className="text-lg font-semibold text-center">Security Features</h2>
+        <div className="mt-12 space-y-5">
+          <h2 className="text-2xl font-semibold text-center">Security Features</h2>
           <div className="grid sm:grid-cols-3 gap-4">
-            <div className="p-5 rounded-lg bg-muted/30 border border-border space-y-2">
+            <div className="p-5 rounded-lg bg-muted/30 border border-border space-y-2.5">
               <ShieldCheck className="w-6 h-6 text-primary" />
-              <h3 className="text-sm font-semibold">Military-Grade Encryption</h3>
+              <h3 className="text-base font-semibold">Military-Grade Encryption</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 AES-256-GCM with PBKDF2 (600,000 iterations)
               </p>
             </div>
-            <div className="p-5 rounded-lg bg-muted/30 border border-border space-y-2">
+            <div className="p-5 rounded-lg bg-muted/30 border border-border space-y-2.5">
               <ShieldCheck className="w-6 h-6 text-primary" />
-              <h3 className="text-sm font-semibold">Zero Data Collection</h3>
+              <h3 className="text-base font-semibold">Zero Data Collection</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Everything runs locally. No servers, no tracking.
               </p>
             </div>
-            <div className="p-5 rounded-lg bg-muted/30 border border-border space-y-2">
+            <div className="p-5 rounded-lg bg-muted/30 border border-border space-y-2.5">
               <ShieldCheck className="w-6 h-6 text-primary" />
-              <h3 className="text-sm font-semibold">Open Source</h3>
+              <h3 className="text-base font-semibold">Open Source</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Fully transparent and auditable code.
               </p>
