@@ -1,4 +1,4 @@
-import { Settings as SettingsIcon, X, Sun, Moon, Monitor } from 'lucide-react';
+import { Settings as SettingsIcon, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
 
@@ -11,8 +11,6 @@ interface SettingsProps {
     showCharacterCount: boolean;
   };
   onSettingsChange: (key: string, value: boolean) => void;
-  theme: 'light' | 'dark' | 'system';
-  onThemeChange: (theme: 'light' | 'dark' | 'system') => void;
 }
 
 export function Settings({
@@ -20,8 +18,6 @@ export function Settings({
   onClose,
   settings,
   onSettingsChange,
-  theme,
-  onThemeChange,
 }: SettingsProps) {
   if (!isOpen) return null;
 
@@ -51,40 +47,6 @@ export function Settings({
         </div>
 
         <div className="p-4 space-y-6 max-h-[70vh] overflow-y-auto">
-          {/* Theme Selection */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Theme</Label>
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                variant={theme === 'light' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onThemeChange('light')}
-                className="flex items-center gap-2"
-              >
-                <Sun className="w-4 h-4" />
-                Light
-              </Button>
-              <Button
-                variant={theme === 'dark' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onThemeChange('dark')}
-                className="flex items-center gap-2"
-              >
-                <Moon className="w-4 h-4" />
-                Dark
-              </Button>
-              <Button
-                variant={theme === 'system' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onThemeChange('system')}
-                className="flex items-center gap-2"
-              >
-                <Monitor className="w-4 h-4" />
-                Auto
-              </Button>
-            </div>
-          </div>
-
           {/* Preferences */}
           <div className="space-y-4">
             <Label className="text-sm font-medium">Preferences</Label>

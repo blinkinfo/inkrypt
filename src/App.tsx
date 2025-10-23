@@ -14,7 +14,6 @@ import { CharacterCount } from '@/components/CharacterCount';
 import { usePasswordVisibility } from '@/hooks/usePasswordVisibility';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useDarkMode } from '@/hooks/useDarkMode';
 import { encrypt, decrypt, encryptFile, decryptFile } from '@/lib/crypto';
 import { readFileAsArrayBuffer, downloadFile, validateFileSize, sanitizeFileName } from '@/lib/fileUtils';
 
@@ -25,8 +24,7 @@ interface AppSettings {
 }
 
 function App() {
-  // Theme and settings
-  const { theme, setTheme } = useDarkMode();
+  // Settings
   const [settings, setSettings] = useLocalStorage<AppSettings>('inkrypt-settings', {
     autoClearPasswords: false,
     showKeyboardShortcuts: true,
@@ -335,8 +333,6 @@ function App() {
         onSettingsChange={(key, value) => {
           setSettings((prev) => ({ ...prev, [key]: value }));
         }}
-        theme={theme}
-        onThemeChange={setTheme}
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
